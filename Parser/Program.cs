@@ -10,7 +10,7 @@ namespace Parser
     {
         static async Task Main(string[] args)
         {
-            string a = await Loader.GetPartsPositions();
+            string a = await Loader.GetCategoriesJson();
             Console.WriteLine(a);
             Console.ReadLine();
         }
