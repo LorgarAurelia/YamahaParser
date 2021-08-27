@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Net;
+using System.Threading.Tasks;
 using YamahaParser.Core.Parser;
 
 namespace YamahaParser
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
 
             string catLink = Parser.GetCatalogLink();
-            string cat = Loader.GetCategories(catLink);
+            var cat = await Loader.GetJsonOfCatAsync(catLink);
             Console.WriteLine(cat);
 
             Console.ReadKey();
