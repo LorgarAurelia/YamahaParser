@@ -10,9 +10,17 @@ namespace Parser
     {
         static async Task Main(string[] args)
         {
-            string a = await Loader.GetCategoriesJson();
-            Console.WriteLine(a);
-            Console.ReadLine();
+            string obj = await Loader.GetCategoriesJson();
+
+            Parser.ParseCategories(obj);
+            /*string s = "C:/Users/AppData/Roaming/.Data/objects/1233as...";
+            Console.WriteLine(s);
+            Console.WriteLine(s.Remove(s.IndexOf(obj)));
+            Console.WriteLine(s.Remove(s.IndexOf(obj) + obj.Length));
+            Console.WriteLine(s.Substring(s.IndexOf(obj)));
+            Console.WriteLine(s.Substring(s.IndexOf(obj) + obj.Length));*/
+
+            Console.ReadKey();
         }
     }
 }
