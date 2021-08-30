@@ -11,14 +11,19 @@ namespace Parser
     {
         static async Task Main(string[] args)
         {
-            string obj = await Loader.GetCategoriesJson();
+            /*string obj = await Loader.GetCategoriesJson();
 
             var parsedCat = Parser.ParseCategories(obj);
-            SqlService.InsertCategories(parsedCat);
+            SqlService.InsertCategories(parsedCat);*/
 
+            var result = SqlService.GetJsonParams();
 
+            foreach (var row in result)
+            {
+                Console.WriteLine(row.ProductId + row.DisplacementType);
+            }
 
-            Console.ReadKey();
+                Console.ReadKey();
         }
     }
 }
