@@ -51,8 +51,8 @@ namespace Parser
             {
                 ModelJsonContent row = new();
 
-                row.ProductId = reader[0].ToString();
-                row.DisplacementType = reader[1].ToString();
+                row.ProductId = reader[0].ToString().Trim();
+                row.DisplacementType = reader[1].ToString().Trim();
 
                 content.Add(row);
             }

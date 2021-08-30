@@ -16,12 +16,16 @@ namespace Parser
             var parsedCat = Parser.ParseCategories(obj);
             SqlService.InsertCategories(parsedCat);*/
 
-            var result = SqlService.GetJsonParams();
+            var jsonParamsColection = SqlService.GetJsonParams();
 
-            foreach (var row in result)
+            var result = await Loader.GetModelNameList(jsonParamsColection);
+
+            foreach (var item in result)
             {
-                Console.WriteLine(row.ProductId + row.DisplacementType);
+                Console.WriteLine(item + "****************************\n");
             }
+
+            
 
                 Console.ReadKey();
         }

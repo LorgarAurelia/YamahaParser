@@ -1,4 +1,6 @@
-﻿using System.Net.Http;
+﻿using Parser.Core.SqlConnection;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,16 +20,24 @@ namespace Parser
             return jsonInString;
         }
 
-        public static async Task<string> GetModelNameList()
+        public static async Task<List<string>> GetModelNameList(List<ModelJsonContent> jsonParamsCollection)
         {
-            var client = PostClient.Create();
+            List<string> jsonCollection = new();
+            foreach (var item in jsonParamsCollection)
+            {
+                var client = PostClient.Create();
+                string json = "{\"productId\":\"" + item.ProductId + "\",\"displacementType\":\"" + item.DisplacementType + "\",\"baseCode\":\"7306\",\"langId\":\"92\"}";
 
+                HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
+                var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_name_list/ ", content);
 
-            HttpContent content = new StringContent("{\"productId\":\"10\",\"displacementType\":\"1\",\"baseCode\":\"7306\",\"langId\":\"92\"}", Encoding.UTF8, "application/json");
-            var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_name_list/ ", content);
+                var jsonInString = await answer.Content.ReadAsStringAsync();
+                jsonCollection.Add(jsonInString);
 
-            var jsonInString = await answer.Content.ReadAsStringAsync();
-            return jsonInString;
+                System.Threading.Thread.Sleep(1000);//Трэдслип нужен, чтобы сервер не рубил соединение
+            }
+            
+            return jsonCollection;
         }
 
         public static async Task<string> GetModelYearsList()
