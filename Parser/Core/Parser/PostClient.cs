@@ -1,12 +1,10 @@
 ﻿using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Parser
 {
     class PostClient
     {
-        public static HttpClient Create() 
+        public static HttpClient Create()
         {
             HttpClientHandler handler = new();
             handler.AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate;

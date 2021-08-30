@@ -6,7 +6,7 @@ namespace Parser
 {
     class Loader
     {
-        public static async Task<string> GetCategoriesJson() 
+        public static async Task<string> GetCategoriesJson()
         {
             var client = PostClient.Create();
 
@@ -18,7 +18,7 @@ namespace Parser
             return jsonInString;
         }
 
-        public static async Task<string> GetModelNameList() 
+        public static async Task<string> GetModelNameList()
         {
             var client = PostClient.Create();
 
@@ -30,7 +30,7 @@ namespace Parser
             return jsonInString;
         }
 
-        public static async Task<string> GetModelYearsList() 
+        public static async Task<string> GetModelYearsList()
         {
             var client = PostClient.Create();
 
@@ -41,7 +41,7 @@ namespace Parser
             return jsonInString;
         }
 
-        public static async Task<string> GetModelVariant() 
+        public static async Task<string> GetModelVariant()
         {
             var client = PostClient.Create();
 
@@ -52,7 +52,7 @@ namespace Parser
             return jsonInString;
         }
 
-        public static async Task<string> GetSetsPositions() 
+        public static async Task<string> GetSetsPositions()
         {
             var client = PostClient.Create();
 
@@ -63,7 +63,7 @@ namespace Parser
             return jsonInString;
         }
 
-        public static async Task<string> GetSetParts() 
+        public static async Task<string> GetSetParts()
         {
             var client = PostClient.Create();
 
