@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Parser.Core.Parser;
+using System;
 using System.Collections.Generic;
 
 namespace Parser
@@ -91,6 +92,47 @@ namespace Parser
             }
 
             return parsedCategories;
+        }
+
+        public static ModelCollection ParseModelsList(List<string> listOfModel)
+        {
+            ModelCollection parsedModelList = new();
+            parsedModelList.ProductId = new();
+            parsedModelList.ModelName = new();
+            parsedModelList.DispModelName = new();
+            parsedModelList.Nickname = new();
+
+            foreach (var json in listOfModel)
+            {
+                string[] modelFromatedData;
+                string modelData = json.Replace("\"modelNameDataCollection\"", "");
+
+                modelData = JsonStringCleaner(modelData);
+
+                modelFromatedData = modelData.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                for (int i = 0; i < modelFromatedData.Length; i++)
+                {
+                    string row = modelFromatedData[i].Trim();
+
+                    if (row.Length == 0)
+                        continue;
+
+                    string[] pair = row.Split(new char[] { ':' }, 2);
+
+                    if (row.Contains("productId"))
+                        parsedModelList.ProductId.Add(pair[1]);
+
+                    if (row.Contains("modelName"))
+                        parsedModelList.ModelName.Add(pair[1]);
+
+                    if (row.Contains("dispModelName"))
+                        parsedModelList.DispModelName.Add(pair[1]);
+
+                    if (row.Contains("nickname"))
+                        parsedModelList.Nickname.Add(pair[1]);
+                }
+            }
+            return parsedModelList;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Parser.Core.SqlConnection;
+﻿using Parser.Core.Parser;
+using Parser.Core.SqlConnection;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 
@@ -58,6 +59,21 @@ namespace Parser
             }
 
             return content;
+        }
+
+        public static void InsertModelList(ModelCollection data)
+        {
+            ConnectionToDB sqlClient = new();
+            string query;
+
+            for (int i = 0; i < data.ProductId.Count; i++)
+            {
+                query = $"INSERT INTO [Models] (productId, modelName, dispModelName, nickname) values (N'{data.ProductId[i]}', N'{data.ModelName[i]}', N'{data.DispModelName[i]}', N'{data.Nickname}')";
+
+                SqlCommand command = new(query, sqlClient.sqlConnection);
+
+                command.ExecuteNonQuery();
+            }
         }
     }
 }

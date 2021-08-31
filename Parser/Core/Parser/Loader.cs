@@ -1,4 +1,5 @@
 ﻿using Parser.Core.SqlConnection;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -8,6 +9,7 @@ namespace Parser
 {
     class Loader
     {
+        
         public static async Task<string> GetCategoriesJson()
         {
             var client = PostClient.Create();
@@ -25,6 +27,8 @@ namespace Parser
             List<string> jsonCollection = new();
             foreach (var item in jsonParamsCollection)
             {
+                Random randomizer = new();
+                int randomTimeout = randomizer.Next(1000,3000);
                 var client = PostClient.Create();
                 string json = "{\"productId\":\"" + item.ProductId + "\",\"displacementType\":\"" + item.DisplacementType + "\",\"baseCode\":\"7306\",\"langId\":\"92\"}";
 
@@ -34,7 +38,7 @@ namespace Parser
                 var jsonInString = await answer.Content.ReadAsStringAsync();
                 jsonCollection.Add(jsonInString);
 
-                System.Threading.Thread.Sleep(1000);//Трэдслип нужен, чтобы сервер не рубил соединение
+                System.Threading.Thread.Sleep(randomTimeout);//Трэдслип нужен, чтобы сервер не рубил соединение
             }
             
             return jsonCollection;

@@ -18,11 +18,13 @@ namespace Parser
 
             var jsonParamsColection = SqlService.GetJsonParams();
 
-            var result = await Loader.GetModelNameList(jsonParamsColection);
+            var jsonList = await Loader.GetModelNameList(jsonParamsColection);
 
-            foreach (var item in result)
+            var result = Parser.ParseModelsList(jsonList);
+
+            for (int i = 0; i < result.Nickname.Count; i++)
             {
-                Console.WriteLine(item + "****************************\n");
+                Console.WriteLine("PId" + result.ProductId[i] + "MName" + result.ModelName[i] + "DisMName" + result.DispModelName[i] + "nickname" + result.Nickname[i]);
             }
 
             
