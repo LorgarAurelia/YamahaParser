@@ -44,15 +44,26 @@ namespace Parser
             return jsonCollection;
         }
 
-        public static async Task<string> GetModelYearsList()
+        public static async Task<List<string>> GetModelYearsList(List<YearsJsonContent> jsonParamsCollection)
         {
-            var client = PostClient.Create();
+            List<string> jsonCollection = new();
+            foreach (var item in jsonParamsCollection)
+            {
+                int randomTimeout = Randomizer.RandomInt(1000,3000);
+                var client = PostClient.Create();
 
-            HttpContent content = new StringContent("{\"productId\":\"10\",\"modelName\":\"YQ50\",\"nickname\":\"AEROX\",\"baseCode\":\"7306\",\"langId\":\"92\",\"userGroupCode\":\"BTOC\",\"destination\":\"GBR\",\"destGroupCode\":\"EURS\",\"domOvsId\":\"2\"}", Encoding.UTF8, "application/json");
-            var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_year_list/", content);
+                string json = "{\"productId\":\"" + item.ProductId + "\",\"modelName\":\"" + item.ModelName + "\",\"nickname\":\"" + item.Nickname + "\",\"baseCode\":\"7306\",\"langId\":\"92\",\"userGroupCode\":\"BTOC\",\"destination\":\"GBR\",\"destGroupCode\":\"EURS\",\"domOvsId\":\"2\"}";
 
-            var jsonInString = await answer.Content.ReadAsStringAsync();
-            return jsonInString;
+                HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
+                var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_year_list/", content);
+
+                var jsonInString = await answer.Content.ReadAsStringAsync();
+                jsonCollection.Add(jsonInString);
+
+                System.Threading.Thread.Sleep(randomTimeout);
+            }
+            
+            return jsonCollection;
         }
 
         public static async Task<string> GetModelVariant()

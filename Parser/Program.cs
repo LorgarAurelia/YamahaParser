@@ -31,9 +31,11 @@ namespace Parser
 
             var yearsJsonParams = SqlService.GetModelJson();
 
-            foreach (var item in yearsJsonParams)
+            var jsonList = await Loader.GetModelYearsList(yearsJsonParams);
+
+            foreach (var item in jsonList)
             {
-                Console.WriteLine(item.ProductId + "\t" + item.ModelName + "\t" + item.Nickname);
+                Console.WriteLine(item + "*******************************************\n");
             }
 
                 Console.ReadKey();
