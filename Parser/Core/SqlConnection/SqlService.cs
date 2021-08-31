@@ -68,7 +68,7 @@ namespace Parser
 
             for (int i = 0; i < data.ProductId.Count; i++)
             {
-                query = $"INSERT INTO [Models] (productId, modelName, dispModelName, nickname) values (N'{data.ProductId[i]}', N'{data.ModelName[i]}', N'{data.DispModelName[i]}', N'{data.Nickname}')";
+                query = $"INSERT INTO [Models] (productId, modelName, dispModelName, nickname) values (N'{data.ProductId[i]}', N'{data.ModelName[i]}', N'{data.DispModelName[i]}', N'{data.Nickname[i]}')";
 
                 SqlCommand command = new(query, sqlClient.sqlConnection);
 

@@ -24,10 +24,10 @@ namespace Parser
 
             for (int i = 0; i < result.Nickname.Count; i++)
             {
-                Console.WriteLine("PId" + result.ProductId[i] + "MName" + result.ModelName[i] + "DisMName" + result.DispModelName[i] + "nickname" + result.Nickname[i]);
+                Console.WriteLine("PId " + result.ProductId[i] + "MName " + result.ModelName[i] + "DisMName " + result.DispModelName[i] + "nickname " + result.Nickname[i]);
             }
 
-            
+            SqlService.InsertModelList(result);
 
                 Console.ReadKey();
         }
