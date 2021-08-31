@@ -1,5 +1,5 @@
-﻿using Parser.Core.SqlConnection;
-using Parser.Core.Parser;
+﻿using Parser.Core.Parser;
+using Parser.Core.SqlConnection;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -10,7 +10,7 @@ namespace Parser
 {
     class Loader
     {
-        
+
         public static async Task<string> GetCategoriesJson()
         {
             var client = PostClient.Create();
@@ -28,7 +28,7 @@ namespace Parser
             List<string> jsonCollection = new();
             foreach (var item in jsonParamsCollection)
             {
-                int randomTimeout = Randomizer.RandomInt(1000,3000);
+                int randomTimeout = Randomizer.RandomInt(1000, 3000);
                 var client = PostClient.Create();
                 string json = "{\"productId\":\"" + item.ProductId + "\",\"displacementType\":\"" + item.DisplacementType + "\",\"baseCode\":\"7306\",\"langId\":\"92\"}";
 
@@ -40,16 +40,19 @@ namespace Parser
 
                 System.Threading.Thread.Sleep(randomTimeout);//Трэдслип нужен, чтобы сервер не рубил соединение
             }
-            
+
             return jsonCollection;
         }
 
-        public static async Task<List<string>> GetModelYearsList(List<YearsJsonContent> jsonParamsCollection)
+        public static async void GetModelYearsList(List<YearsJsonContent> jsonParamsCollection)
         {
             List<string> jsonCollection = new();
+            int toPauseCounter = 1;
+            int showCaseCounter = 1; //удалить по окончанию разработки
             foreach (var item in jsonParamsCollection)
             {
-                int randomTimeout = Randomizer.RandomInt(1000,3000);
+
+                int randomTimeout = Randomizer.RandomInt(1000, 3000);
                 var client = PostClient.Create();
 
                 string json = "{\"productId\":\"" + item.ProductId + "\",\"modelName\":\"" + item.ModelName + "\",\"nickname\":\"" + item.Nickname + "\",\"baseCode\":\"7306\",\"langId\":\"92\",\"userGroupCode\":\"BTOC\",\"destination\":\"GBR\",\"destGroupCode\":\"EURS\",\"domOvsId\":\"2\"}";
@@ -58,12 +61,22 @@ namespace Parser
                 var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_year_list/", content);
 
                 var jsonInString = await answer.Content.ReadAsStringAsync();
+                Console.WriteLine(jsonInString + "************************************\n" + "Curent status: No of curent post = " + showCaseCounter + " Etaration before pause left = " + (100 - toPauseCounter) + "************************************\n");
                 jsonCollection.Add(jsonInString);
 
                 System.Threading.Thread.Sleep(randomTimeout);
+                showCaseCounter++;
+                toPauseCounter++;
+
+
+                if (toPauseCounter == 100)
+                {
+                    System.Threading.Thread.Sleep(10000);
+                    toPauseCounter = 1;
+                    SqlService.InsertUnparsedData(jsonCollection);
+                    jsonCollection = new();
+                }
             }
-            
-            return jsonCollection;
         }
 
         public static async Task<string> GetModelVariant()

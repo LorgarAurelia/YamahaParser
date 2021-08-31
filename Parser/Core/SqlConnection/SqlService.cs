@@ -99,5 +99,19 @@ namespace Parser
             }
             return jsonContent;
         }
+
+        public static void InsertUnparsedData (List<string> data)
+        {
+            ConnectionToDB sqlClient = new();
+            string query;
+
+            for (int i = 0; i < data.Count; i++)
+            {
+                query = $"insert into [YearsUnparsedJson] (json) values (N'{data[i]}')";
+                SqlCommand command = new(query, sqlClient.sqlConnection);
+
+                command.ExecuteNonQuery();
+            }
+        }
     }
 }
