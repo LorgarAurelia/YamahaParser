@@ -76,6 +76,28 @@ namespace Parser
             }
         }
 
-        
+        public static List<YearsJsonContent> GetModelJson()
+        {
+            ConnectionToDB sqlClient = new();
+            string query = "select productId, modelName, nickname from Models order by productId";
+
+            List<YearsJsonContent> jsonContent = new();
+
+            SqlCommand command = new(query, sqlClient.sqlConnection);
+
+            SqlDataReader reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                YearsJsonContent row = new();
+
+                row.ProductId = reader[0].ToString().Trim();
+                row.ModelName = reader[1].ToString().Trim().Replace("+", "'");
+                row.Nickname = reader[2].ToString().Trim().Replace("+", "'");
+
+                jsonContent.Add(row);
+            }
+            return jsonContent;
+        }
     }
 }

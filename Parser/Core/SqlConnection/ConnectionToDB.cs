@@ -19,11 +19,11 @@ namespace Parser
             if (sqlConnection.State == ConnectionState.Open)
                 Console.WriteLine("Connection opened.");
         }
-        ~ConnectionToDB()
+        /*~ConnectionToDB()
         {
             sqlConnection.Close();
             if (sqlConnection.State == ConnectionState.Closed)
                 Console.WriteLine("Connection closed");
-        }
+        }*/
     }
 }

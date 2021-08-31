@@ -16,7 +16,7 @@ namespace Parser
             var parsedCat = Parser.ParseCategories(obj);
             SqlService.InsertCategories(parsedCat);*/
 
-            var jsonParamsColection = SqlService.GetJsonParams();
+            /*var jsonParamsColection = SqlService.GetJsonParams();
 
             var jsonList = await Loader.GetModelNameList(jsonParamsColection);
 
@@ -27,7 +27,14 @@ namespace Parser
                 Console.WriteLine("PId " + result.ProductId[i] + "MName " + result.ModelName[i] + "DisMName " + result.DispModelName[i] + "nickname " + result.Nickname[i]);
             }
 
-            SqlService.InsertModelList(result);
+            SqlService.InsertModelList(result);*/
+
+            var yearsJsonParams = SqlService.GetModelJson();
+
+            foreach (var item in yearsJsonParams)
+            {
+                Console.WriteLine(item.ProductId + "\t" + item.ModelName + "\t" + item.Nickname);
+            }
 
                 Console.ReadKey();
         }
