@@ -1,4 +1,5 @@
 ﻿using Parser.Core.SqlConnection;
+using Parser.Core.Parser;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -27,8 +28,7 @@ namespace Parser
             List<string> jsonCollection = new();
             foreach (var item in jsonParamsCollection)
             {
-                Random randomizer = new();
-                int randomTimeout = randomizer.Next(1000,3000);
+                int randomTimeout = Randomizer.RandomInt(1000,3000);
                 var client = PostClient.Create();
                 string json = "{\"productId\":\"" + item.ProductId + "\",\"displacementType\":\"" + item.DisplacementType + "\",\"baseCode\":\"7306\",\"langId\":\"92\"}";
 

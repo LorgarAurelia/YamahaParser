@@ -75,5 +75,7 @@ namespace Parser
                 command.ExecuteNonQuery();
             }
         }
+
+        
     }
 }
