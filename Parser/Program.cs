@@ -29,12 +29,15 @@ namespace Parser
 
             SqlService.InsertModelList(result);*/
 
-            var yearsJsonParams = SqlService.GetModelJson();
+            var  yearsJsons = SqlService.GetUnparsedYearsJson();
+            var result = Parser.ParseYears(yearsJsons);
 
-            foreach (var item in yearsJsonParams)
+            SqlService.InsertYears(result);
+            /*for (int i = 0; i < result.ModelYear.Count; i++)
             {
-                Console.WriteLine(item.Nickname);
-            }
+                Console.WriteLine("Model id: " + result.ModelId[i] + "\t Year: " + result.ModelYear[i]);
+            }*/
+            
 
             /*Loader.GetModelYearsList(yearsJsonParams);*/
 

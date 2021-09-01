@@ -1,4 +1,5 @@
 ﻿using Parser.Core.Parser;
+using Parser.Core.SqlConnection;
 using System;
 using System.Collections.Generic;
 
@@ -136,6 +137,42 @@ namespace Parser
                 }
             }
             return parsedModelList;
+        }
+
+        public static YearsModelCollection ParseYears(List<YearsUnparsedContent> dataToParse) 
+        {
+            YearsModelCollection parsedData = new();
+            parsedData.ModelId = new();
+            parsedData.ModelYear = new();
+
+            List<string> jsonCollection = new();
+            List<string> modelId = new();
+
+            foreach (var item in dataToParse)
+            {
+                string[] modelFromatedData;
+                string modelData = item.Json.Replace("\"modelYearDataCollection\"","");
+
+                modelData = JsonStringCleaner(modelData);
+                modelFromatedData = modelData.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                for (int i = 0; i < modelFromatedData.Length; i++)
+                {
+                    string row = modelFromatedData[i].Trim();
+
+                    if (row.Length == 0)
+                        continue;
+
+                    string[] pair = row.Split(new char[] { ':' }, 2);
+
+                    if (row.Contains("modelYear"))
+                    {
+                        parsedData.ModelYear.Add(pair[1]);
+                        parsedData.ModelId.Add(item.ModelId);
+                    }
+                }
+            }
+            return parsedData;
         }
     }
 }

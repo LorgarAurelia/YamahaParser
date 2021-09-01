@@ -171,5 +171,24 @@ namespace Parser
 
             return jsonCollection;
         }
+
+        public static void InsertYears(YearsModelCollection data)
+        {
+            ConnectionToDB sqlClient = new();
+            string query;
+
+            for (int i = 0; i < data.ModelYear.Count; i++)
+            {
+                query = $"INSERT INTO [ModelYears] (modelYears, modelId) values (N'{data.ModelYear[i]}', {data.ModelId[i]})";
+
+                SqlCommand command = new(query, sqlClient.sqlConnection);
+
+                command.ExecuteNonQuery();
+            }
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
+        }
     }
 }
