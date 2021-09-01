@@ -1,6 +1,8 @@
 ﻿using Parser.Core.Parser;
 using Parser.Core.SqlConnection;
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 
 namespace Parser
@@ -20,6 +22,10 @@ namespace Parser
 
                 command.ExecuteNonQuery();
             }
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
         }
 
         public static void InsertCategories(Categories data)
@@ -35,6 +41,10 @@ namespace Parser
 
                 command.ExecuteNonQuery();
             }
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
         }
 
         public static List<ModelJsonContent> GetJsonParams()
@@ -57,6 +67,11 @@ namespace Parser
 
                 content.Add(row);
             }
+            reader.Close();
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
 
             return content;
         }
@@ -74,6 +89,10 @@ namespace Parser
 
                 command.ExecuteNonQuery();
             }
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
         }
 
         public static List<YearsJsonContent> GetModelJson()
@@ -97,21 +116,31 @@ namespace Parser
 
                 jsonContent.Add(row);
             }
+            reader.Close();
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
             return jsonContent;
         }
 
-        public static void InsertUnparsedData (List<string> data)
+        public static void InsertUnparsedData (List<UnparsedYearsData> data)
         {
             ConnectionToDB sqlClient = new();
             string query;
 
-            for (int i = 0; i < data.Count; i++)
+            foreach (var row in data)
             {
-                query = $"insert into [YearsUnparsedJson] (json) values (N'{data[i]}')";
+                query = $"insert into [YearsUnparsedJson] (json) values (N'{row.Json}')";
                 SqlCommand command = new(query, sqlClient.sqlConnection);
 
                 command.ExecuteNonQuery();
+                Console.WriteLine("Запрос отправлен \n");
             }
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
         }
     }
 }

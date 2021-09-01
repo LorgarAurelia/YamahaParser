@@ -46,36 +46,55 @@ namespace Parser
 
         public static async void GetModelYearsList(List<YearsJsonContent> jsonParamsCollection)
         {
-            List<string> jsonCollection = new();
+            List<UnparsedYearsData> jsonCollection = new();
             int toPauseCounter = 1;
-            int showCaseCounter = 1; //удалить по окончанию разработки
+            int showCaseCounter = 1;
+            
             foreach (var item in jsonParamsCollection)
             {
+                UnparsedYearsData row = new();
 
                 int randomTimeout = Randomizer.RandomInt(1000, 3000);
+                int randomBigTimeout = Randomizer.RandomInt(9000,12000);
+
                 var client = PostClient.Create();
 
                 string json = "{\"productId\":\"" + item.ProductId + "\",\"modelName\":\"" + item.ModelName + "\",\"nickname\":\"" + item.Nickname + "\",\"baseCode\":\"7306\",\"langId\":\"92\",\"userGroupCode\":\"BTOC\",\"destination\":\"GBR\",\"destGroupCode\":\"EURS\",\"domOvsId\":\"2\"}";
 
-                HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
-                var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_year_list/", content);
+                row.ModelName = item.ModelName;
 
-                var jsonInString = await answer.Content.ReadAsStringAsync();
-                Console.WriteLine(jsonInString + "************************************\n" + "Curent status: No of curent post = " + showCaseCounter + " Etaration before pause left = " + (100 - toPauseCounter) + "************************************\n");
-                jsonCollection.Add(jsonInString);
+                HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
+                try
+                {
+                    var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_year_list/", content);
+
+                    row.Json = await answer.Content.ReadAsStringAsync();
+                }
+                catch (Exception)
+                {
+                    System.Threading.Thread.Sleep(randomTimeout);
+
+                    var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_year_list/", content);
+
+                    row.Json = await answer.Content.ReadAsStringAsync();
+                }
+                
+                Console.WriteLine(row.Json + "************************************\n" + "Curent status: No of curent post = " + showCaseCounter + " Etaration before pause left = " + (10 - toPauseCounter) + "************************************\n");
+
+                jsonCollection.Add(row);
 
                 System.Threading.Thread.Sleep(randomTimeout);
-                showCaseCounter++;
-                toPauseCounter++;
+                
 
-
-                if (toPauseCounter == 100)
+                if ( showCaseCounter == jsonParamsCollection.Count || toPauseCounter == 10 )
                 {
-                    System.Threading.Thread.Sleep(10000);
+                    System.Threading.Thread.Sleep(randomBigTimeout);
                     toPauseCounter = 1;
                     SqlService.InsertUnparsedData(jsonCollection);
                     jsonCollection = new();
                 }
+                showCaseCounter++;
+                toPauseCounter++;
             }
         }
 
