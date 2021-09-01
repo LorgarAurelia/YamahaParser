@@ -142,5 +142,34 @@ namespace Parser
             if (sqlClient.sqlConnection.State == ConnectionState.Closed)
                 Console.WriteLine("Connection closed");
         }
+
+        public static List<YearsUnparsedContent> GetUnparsedYearsJson()
+        {
+            ConnectionToDB sqlClient = new();
+            string query = "select id, json from YearsUnparsedJson";
+
+            List<YearsUnparsedContent> jsonCollection = new();
+
+            SqlCommand command = new(query, sqlClient.sqlConnection);
+
+            SqlDataReader reader = command.ExecuteReader();
+
+            while (reader.Read()) 
+            {
+                YearsUnparsedContent row = new();
+
+                row.ModelId = reader[0].ToString().Trim();
+                row.Json = reader[1].ToString().Trim();
+
+                jsonCollection.Add(row);
+            }
+            reader.Close();
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
+
+            return jsonCollection;
+        }
     }
 }
