@@ -190,5 +190,36 @@ namespace Parser
             if (sqlClient.sqlConnection.State == ConnectionState.Closed)
                 Console.WriteLine("Connection closed");
         }
+
+        public static List<ModelVariantJsonContent> GetVariantJson()
+        {
+            ConnectionToDB sqlClient = new();
+            string query = "select productId, modelName, nickname, modelYears from Models as m join ModelYears as my on my.modelId = m.id";
+
+            List<ModelVariantJsonContent> jsonContent = new();
+
+            SqlCommand command = new(query, sqlClient.sqlConnection);
+
+            SqlDataReader reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                ModelVariantJsonContent row = new();
+
+                row.ProductId = reader[0].ToString().Trim();
+                row.ModelName = reader[1].ToString().Trim().Replace("+", "'");
+                row.Nickname = reader[2].ToString().Trim().Replace("+", "'");
+                row.ModelYear = reader[3].ToString().Trim();
+
+                jsonContent.Add(row);
+            }
+            reader.Close();
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
+
+            return jsonContent;
+        }
     }
 }
