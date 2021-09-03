@@ -98,15 +98,64 @@ namespace Parser
             }
         }
 
-        public static async Task<string> GetModelVariant()
+        public static async void GetModelVariant(List<ModelVariantJsonContent> jsonParamsCollection)
         {
-            var client = PostClient.Create();
+            List<string> jsonCollection = new();
+            int toPauseCounter = 1;
+            int showCaseCounter = 1;
 
-            HttpContent content = new StringContent("{\"productId\":\"10\",\"calledCode\":\"1\",\"modelName\":\"YQ50\",\"nickname\":\"AEROX\",\"modelYear\":\"2012\",\"modelTypeCode\":null,\"productNo\":null,\"colorType\":null,\"vinNo\":null,\"prefixNoFromScreen\":null,\"serialNoFromScreen\":null,\"baseCode\":\"7306\",\"langId\":\"92\",\"userGroupCode\":\"BTOC\",\"destination\":\"GBR\",\"destGroupCode\":\"EURS\",\"domOvsId\":\"2\",\"useProdCategory\":true,\"greyModelSign\":false}", Encoding.UTF8, "application/json");
-            var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_list/", content);
+            try
+            {
+                foreach (var item in jsonParamsCollection)
+                {
 
-            var jsonInString = await answer.Content.ReadAsStringAsync();
-            return jsonInString;
+                    int randomTimeout = Randomizer.RandomInt(1000, 3000);
+                    int randomBigTimeout = Randomizer.RandomInt(9000, 12000);
+
+                    var client = PostClient.Create();
+
+                    string json = "{\"productId\":\"" + item.ProductId + "\",\"calledCode\":\"1\",\"modelName\":\"" + item.ModelName + "\",\"nickname\":\"" + item.Nickname + "\",\"modelYear\":\"" + item.ModelYear + "\",\"modelTypeCode\":null,\"productNo\":null,\"colorType\":null,\"vinNo\":null,\"prefixNoFromScreen\":null,\"serialNoFromScreen\":null,\"baseCode\":\"7306\",\"langId\":\"92\",\"userGroupCode\":\"BTOC\",\"destination\":\"GBR\",\"destGroupCode\":\"EURS\",\"domOvsId\":\"2\",\"useProdCategory\":true,\"greyModelSign\":false}";
+
+                    HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
+                    try
+                    {
+                        var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_list/", content);
+
+                        jsonCollection.Add(await answer.Content.ReadAsStringAsync());
+                    }
+                    catch (Exception)
+                    {
+                        System.Threading.Thread.Sleep(randomTimeout);
+
+                        var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_list/", content);
+
+                        jsonCollection.Add(await answer.Content.ReadAsStringAsync());
+                    }
+
+                    Console.WriteLine("\n *************************************************************** \n Curent status: No of curent post = " + showCaseCounter + " Etaration before pause left = " + (10 - toPauseCounter) + "\n *************************************************************** \n");
+
+                    System.Threading.Thread.Sleep(randomTimeout);
+
+                    if (showCaseCounter == jsonParamsCollection.Count || toPauseCounter == 10)
+                    {
+                        System.Threading.Thread.Sleep(randomBigTimeout);
+                        toPauseCounter = 1;
+                        SqlService.InsertUnparsedVariant(jsonCollection);
+                        jsonCollection = new();
+                    }
+                    showCaseCounter++;
+                    toPauseCounter++;
+                }
+            }
+            catch (Exception)
+            {
+                var restartOptions = SqlService.GetRestart();
+                GetModelVariant(restartOptions);
+                return;
+            }
+
+            
+            
         }
 
         public static async Task<string> GetSetsPositions()

@@ -221,5 +221,70 @@ namespace Parser
 
             return jsonContent;
         }
+
+        public static void InsertUnparsedVariant(List<string> data)
+        {
+            ConnectionToDB sqlClient = new();
+            string query;
+
+            for (int i = 0; i < data.Count; i++)
+            {
+                string markedJson = data[i].Replace("'","+");
+                query = $"INSERT INTO [UnparsedModelVariant] (json) values (N'{markedJson}')";
+
+                SqlCommand command = new(query, sqlClient.sqlConnection);
+
+                command.ExecuteNonQuery();
+            }
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
+        }
+
+        public static List<ModelVariantJsonContent> GetRestart()
+        {
+            ConnectionToDB sqlClient = new();
+            string lastId = "0";
+            string quryLastId = "select count(id) from UnparsedModelVariant";
+            
+
+            SqlCommand command = new(quryLastId, sqlClient.sqlConnection);
+
+            SqlDataReader readerOfLastIndex = command.ExecuteReader();
+
+            while (readerOfLastIndex.Read())
+            {
+                lastId = readerOfLastIndex[0].ToString().Trim();
+            }
+            readerOfLastIndex.Close();
+
+            List<ModelVariantJsonContent> jsonContent = new();
+
+            string query = "select productId, modelName, nickname, modelYears from Models as m join ModelYears as my on my.modelId = m.id where my.id > " + lastId;
+
+            command = new(query, sqlClient.sqlConnection);
+
+            SqlDataReader reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                ModelVariantJsonContent row = new();
+
+                row.ProductId = reader[0].ToString().Trim();
+                row.ModelName = reader[1].ToString().Trim().Replace("+", "'");
+                row.Nickname = reader[2].ToString().Trim().Replace("+", "'");
+                row.ModelYear = reader[3].ToString().Trim();
+
+                jsonContent.Add(row);
+            }
+            reader.Close();
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
+
+            return jsonContent;
+        }
     }
 }

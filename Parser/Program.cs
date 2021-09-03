@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Parser.Core.SqlConnection;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -29,15 +30,14 @@ namespace Parser
 
             SqlService.InsertModelList(result);*/
 
-            var  yearsJsons = SqlService.GetUnparsedYearsJson();
-            var result = Parser.ParseYears(yearsJsons);
+            var restartOptions = SqlService.GetRestart();
+            Loader.GetModelVariant(restartOptions);
 
-            SqlService.InsertYears(result);
             /*for (int i = 0; i < result.ModelYear.Count; i++)
             {
                 Console.WriteLine("Model id: " + result.ModelId[i] + "\t Year: " + result.ModelYear[i]);
             }*/
-            
+
 
             /*Loader.GetModelYearsList(yearsJsonParams);*/
 
@@ -46,7 +46,7 @@ namespace Parser
                 Console.WriteLine(item + "*******************************************\n");
             }**/
 
-                Console.ReadKey();
+            Console.ReadKey();
         }
     }
 }
