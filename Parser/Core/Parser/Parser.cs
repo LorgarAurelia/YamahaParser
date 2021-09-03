@@ -145,9 +145,6 @@ namespace Parser
             parsedData.ModelId = new();
             parsedData.ModelYear = new();
 
-            List<string> jsonCollection = new();
-            List<string> modelId = new();
-
             foreach (var item in dataToParse)
             {
                 string[] modelFromatedData;
@@ -170,6 +167,62 @@ namespace Parser
                         parsedData.ModelYear.Add(pair[1]);
                         parsedData.ModelId.Add(item.ModelId);
                     }
+                }
+            }
+            return parsedData;
+        }
+
+        public static ModelsVariantData ParseVariants (List<VariantsUnparsed> dataToParse)
+        {
+            ModelsVariantData parsedData = new();
+            parsedData.ModelTypeCode = new();
+            parsedData.ProductNo = new();
+            parsedData.ColorType = new();
+            parsedData.ColorName = new();
+            parsedData.ProdCategory = new();
+            parsedData.ProdPictureNo = new();
+            parsedData.ProdPictureFileURL = new();
+            parsedData.YearsId = new();
+
+            foreach (var item in dataToParse)
+            {
+                string[] modelFromatedData;
+                string modelData = item.Json.Replace("\"modelDataCollection\"", "");
+
+                modelData = JsonStringCleaner(modelData);
+                modelFromatedData = modelData.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                for (int i = 0; i < modelFromatedData.Length; i++)
+                {
+                    string row = modelFromatedData[i].Trim();
+
+                    if (row.Length == 0)
+                        continue;
+
+                    string[] pair = row.Split(new char[] { ':' }, 2);
+
+                    if (row.Contains("modelTypeCode"))
+                    {
+                        parsedData.ModelTypeCode.Add(pair[1]);
+                        parsedData.YearsId.Add(item.YearsId);
+                    }
+
+                    if (row.Contains("productNo"))
+                        parsedData.ProductNo.Add(pair[1]);
+
+                    if (row.Contains("colorType"))
+                        parsedData.ColorType.Add(pair[1]);
+
+                    if (row.Contains("colorName"))
+                        parsedData.ColorName.Add(pair[1]);
+
+                    if (row.Contains("prodCategory"))
+                        parsedData.ProdCategory.Add(pair[1]);
+
+                    if (row.Contains("prodPictureNo"))
+                        parsedData.ProdPictureNo.Add(pair[1]);
+
+                    if (row.Contains("prodPictureFileURL"))
+                        parsedData.ProdPictureFileURL.Add(pair[1]);
                 }
             }
             return parsedData;

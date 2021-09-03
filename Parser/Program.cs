@@ -30,13 +30,10 @@ namespace Parser
 
             SqlService.InsertModelList(result);*/
 
-            var restartOptions = SqlService.GetRestart();
-            Loader.GetModelVariant(restartOptions);
+            var unVariants = SqlService.GetVariantsUnparseds();
+            var variants = Parser.ParseVariants(unVariants);
 
-            /*for (int i = 0; i < result.ModelYear.Count; i++)
-            {
-                Console.WriteLine("Model id: " + result.ModelId[i] + "\t Year: " + result.ModelYear[i]);
-            }*/
+            SqlService.InsertVariant(variants);
 
 
             /*Loader.GetModelYearsList(yearsJsonParams);*/

@@ -286,5 +286,53 @@ namespace Parser
 
             return jsonContent;
         }
+
+        public static List<VariantsUnparsed> GetVariantsUnparseds()
+        {
+            ConnectionToDB sqlClient = new();
+            string query = "select id, json from UnparsedModelVariant ";
+
+            List<VariantsUnparsed> jsonCollection = new();
+
+            SqlCommand command = new(query, sqlClient.sqlConnection);
+
+            SqlDataReader reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                VariantsUnparsed row = new();
+
+                row.YearsId = reader[0].ToString().Trim();
+                row.Json = reader[1].ToString().Trim();
+
+                jsonCollection.Add(row);
+            }
+            reader.Close();
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
+
+            return jsonCollection;
+        }
+
+        public static void InsertVariant(ModelsVariantData data) 
+        {
+            ConnectionToDB sqlClient = new();
+            string query;
+
+            for (int i = 0; i < data.ModelTypeCode.Count; i++)
+            {
+                query = $"INSERT INTO [Variants] (modelTypeCode, productNo, colorType, colorName, prodCategory, prodPictureNo, prodPictureFileURL, YearsId) values (N'{data.ModelTypeCode[i]}', N'{data.ProductNo[i]}', N'{data.ColorType[i]}', N'{data.ColorName[i]}', N'{data.ProdCategory[i]}', N'{data.ProdPictureNo[i]}', N'{data.ProdPictureFileURL[i]}', {data.YearsId[i]})";
+
+                SqlCommand command = new(query, sqlClient.sqlConnection);
+
+                command.ExecuteNonQuery();
+            }
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
+        }
     }
 }
