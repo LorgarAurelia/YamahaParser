@@ -377,7 +377,7 @@ namespace Parser
 
             for (int i = 0; i < data.FigName.Count; i++)
             {
-                query = $"INSERT INTO [Cataloge] (figName, figNo, illustNo, figBranchNo, illustFileURL, VariantId) values (N'{data.FigName[i]}', N'{data.FigNo[i]}', N'{data.IllustNo[i]}', N'{data.FigBranchNo[i]}', N'{data.IllustFileURL[i]}', {data.VariantId[i]})";
+                query = $"INSERT INTO [Cataloge] (figName, figNo, illustNo, figBranchNo, illustFileURL, VariantId, catalogNo) values (N'{data.FigName[i]}', N'{data.FigNo[i]}', N'{data.IllustNo[i]}', N'{data.FigBranchNo[i]}', N'{data.IllustFileURL[i]}', {data.VariantId[i]}, N'{data.CatalogNo[i]}')";
                 
                 SqlCommand command = new(query, sqlClient.sqlConnection);
 

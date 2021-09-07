@@ -10,5 +10,6 @@ namespace Parser.Core.Parser
         public List<string> FigBranchNo { get; set; }
         public List<string> IllustFileURL { get; set; }
         public List<string> VariantId { get; set; }
+        public List<string> CatalogNo { get; set; }
     }
 }
