@@ -246,10 +246,10 @@ namespace Parser
         {
             ConnectionToDB sqlClient = new();
             string lastId = "0";
-            string quryLastId = "select count(id) from UnparsedModelVariant";
+            string queryLastId = "select count(id) from UnparsedModelVariant";
             
 
-            SqlCommand command = new(quryLastId, sqlClient.sqlConnection);
+            SqlCommand command = new(queryLastId, sqlClient.sqlConnection);
 
             SqlDataReader readerOfLastIndex = command.ExecuteReader();
 
@@ -333,6 +333,109 @@ namespace Parser
             sqlClient.sqlConnection.Close();
             if (sqlClient.sqlConnection.State == ConnectionState.Closed)
                 Console.WriteLine("Connection closed");
+        }
+
+        public static List<GetPositionJson> GetPositionJson()
+        {
+            ConnectionToDB sqlClient = new();
+            string query = "select m.productId,v.modelTypeCode, my.modelYears, v.productNo, v.colorType, m.modelName, v.prodCategory, v.Id from Variants as v join ModelYears as my on v.YearsId = my.Id join Models as m on my.modelId = m.Id";
+
+            List<GetPositionJson> jsonContent = new();
+
+            SqlCommand command = new(query, sqlClient.sqlConnection);
+
+            SqlDataReader reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                GetPositionJson row = new();
+
+                row.ProductId = reader[0].ToString().Trim();
+                row.ModelTypeCode = reader[1].ToString().Trim();
+                row.ModelYear = reader[2].ToString().Trim();
+                row.ProductNo = reader[3].ToString().Trim();
+                row.ColorType = reader[4].ToString().Trim();
+                row.ModelName = reader[5].ToString().Trim().Replace("+", "'");
+                row.ProdCategory = reader[6].ToString().Trim();
+                row.VariantId = reader[7].ToString().Trim();
+
+                jsonContent.Add(row);
+            }
+            reader.Close();
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
+
+            return jsonContent;
+        }
+
+        public static void InsertCataloge(Cataloge data)
+        {
+            ConnectionToDB sqlClient = new();
+            string query;
+
+            for (int i = 0; i < data.FigName.Count; i++)
+            {
+                query = $"INSERT INTO [Cataloge] (figName, figNo, illustNo, figBranchNo, illustFileURL, VariantId) values (N'{data.FigName[i]}', N'{data.FigNo[i]}', N'{data.IllustNo[i]}', N'{data.FigBranchNo[i]}', N'{data.IllustFileURL[i]}', {data.VariantId[i]})";
+                
+                SqlCommand command = new(query, sqlClient.sqlConnection);
+
+                command.ExecuteNonQuery();
+            }
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
+        }
+
+        public static List<GetPositionJson> GetRestartCataloge()
+        {
+            ConnectionToDB sqlClient = new();
+            string lastId = "0";
+            string queryLastId = "SELECT TOP 1 VariantId FROM Cataloge ORDER BY Id DESC ";
+
+
+            SqlCommand command = new(queryLastId, sqlClient.sqlConnection);
+
+            SqlDataReader readerOfLastIndex = command.ExecuteReader();
+
+            while (readerOfLastIndex.Read())
+            {
+                lastId = readerOfLastIndex[0].ToString().Trim();
+            }
+            readerOfLastIndex.Close();
+
+            string query = $"select m.productId,v.modelTypeCode, my.modelYears, v.productNo, v.colorType, m.modelName, v.prodCategory, v.Id from Variants as v join ModelYears as my on v.YearsId = my.Id join Models as m on my.modelId = m.Id where v.id > {lastId}";
+
+            List<GetPositionJson> jsonContent = new();
+
+            command = new(query, sqlClient.sqlConnection);
+
+            SqlDataReader reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                GetPositionJson row = new();
+
+                row.ProductId = reader[0].ToString().Trim();
+                row.ModelTypeCode = reader[1].ToString().Trim();
+                row.ModelYear = reader[2].ToString().Trim();
+                row.ProductNo = reader[3].ToString().Trim();
+                row.ColorType = reader[4].ToString().Trim();
+                row.ModelName = reader[5].ToString().Trim().Replace("+", "'");
+                row.ProdCategory = reader[6].ToString().Trim();
+                row.VariantId = reader[7].ToString().Trim();
+
+                jsonContent.Add(row);
+            }
+            reader.Close();
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
+
+            return jsonContent;
         }
     }
 }

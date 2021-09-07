@@ -29,12 +29,10 @@ namespace Parser
             }
 
             SqlService.InsertModelList(result);*/
-
-            var unVariants = SqlService.GetVariantsUnparseds();
-            var variants = Parser.ParseVariants(unVariants);
-
-            SqlService.InsertVariant(variants);
-
+            /*var jsonCollect = SqlService.GetPositionJson();
+            Loader.GetSetsPositions(jsonCollect);*/
+            var restartoptions = SqlService.GetRestartCataloge();
+            Loader.GetSetsPositions(restartoptions);
 
             /*Loader.GetModelYearsList(yearsJsonParams);*/
 

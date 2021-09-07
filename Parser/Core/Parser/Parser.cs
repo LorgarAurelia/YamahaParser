@@ -227,5 +227,59 @@ namespace Parser
             }
             return parsedData;
         }
+
+        public static void ParseCataloge(List<string> dataToParse, List<string> idCollection)
+        {
+            Cataloge parsedData = new();
+            parsedData.FigName = new();
+            parsedData.FigNo = new();
+            parsedData.IllustNo = new();
+            parsedData.FigBranchNo = new();
+            parsedData.IllustFileURL = new();
+            parsedData.VariantId = new();
+
+            for (int i = 0; i < dataToParse.Count; i++)
+            {
+                if (dataToParse[i].Contains("We are sorry for your inconvenience but the system is busy now.\nYour access again after a while is appreciated")) //добавить инъекцию в бд не пробитых моделей
+                    continue;
+                string[] modelFromatedData;
+                string modelData = dataToParse[i][dataToParse[i].IndexOf("\"figDataCollection\"")..dataToParse[i].IndexOf("\"catalogLangDataCollection\"")]
+                    .Replace("\"figDataCollection\"", "")
+                    .Replace("catalogLangDataCollection", "");
+
+                modelData = JsonStringCleaner(modelData);
+
+                modelFromatedData = modelData.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                for (int Counter = 0; Counter < modelFromatedData.Length; Counter++)
+                {
+                    string row = modelFromatedData[Counter].Trim();
+
+                    if (row.Length == 0)
+                        continue;
+
+                    string[] pair = row.Split(new char[] { ':' }, 2);
+
+                    if (row.Contains("figName"))
+                    {
+                        parsedData.FigName.Add(pair[1]);
+                        parsedData.VariantId.Add(idCollection[i]);
+                    }
+
+                    if (row.Contains("figNo"))
+                        parsedData.FigNo.Add(pair[1]);
+
+                    if (row.Contains("illustNo"))
+                        parsedData.IllustNo.Add(pair[1]);
+
+                    if (row.Contains("figBranchNo"))
+                        parsedData.FigBranchNo.Add(pair[1]);
+
+                    if (row.Contains("illustFileURL"))
+                        parsedData.IllustFileURL.Add(pair[1]);
+                }
+                
+            }
+            SqlService.InsertCataloge(parsedData);
+        }
     }
 }

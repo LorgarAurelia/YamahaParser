@@ -10,7 +10,6 @@ namespace Parser
 {
     class Loader
     {
-
         public static async Task<string> GetCategoriesJson()
         {
             var client = PostClient.Create();
@@ -104,7 +103,7 @@ namespace Parser
             int toPauseCounter = 1;
             int showCaseCounter = 1;
 
-            try
+            try //перевести блок try catch внутрь *
             {
                 foreach (var item in jsonParamsCollection)
                 {
@@ -129,7 +128,7 @@ namespace Parser
 
                         var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_list/", content);
 
-                        jsonCollection.Add(await answer.Content.ReadAsStringAsync());
+                        jsonCollection.Add(await answer.Content.ReadAsStringAsync());//*
                     }
 
                     Console.WriteLine("\n *************************************************************** \n Curent status: No of curent post = " + showCaseCounter + " Etaration before pause left = " + (10 - toPauseCounter) + "\n *************************************************************** \n");
@@ -151,22 +150,69 @@ namespace Parser
             {
                 var restartOptions = SqlService.GetRestart();
                 GetModelVariant(restartOptions);
-                return;
             }
 
             
             
         }
 
-        public static async Task<string> GetSetsPositions()
+        public static async void GetSetsPositions(List<GetPositionJson> jsonParamsCollection)
         {
-            var client = PostClient.Create();
+            List<string> jsonCollection = new();
+            List<string> idCollection = new();
+            int toPauseCounter = 1;
+            int showCaseCounter = 1;
+                foreach (var item in jsonParamsCollection)
+                {
+                    int randomTimeout = Randomizer.RandomInt(1000, 3000);
+                    int randomBigTimeout = Randomizer.RandomInt(9000, 12000);
 
-            HttpContent content = new StringContent("{\"productId\":\"10\",\"modelBaseCode\":\"\",\"modelTypeCode\":\"1BX7\",\"modelYear\":\"2012\",\"productNo\":\"010\",\"colorType\":\"A\",\"modelName\":\"YQ50\",\"prodCategory\":\"11\",\"calledCode\":\"1\",\"vinNoSearch\":\"false\",\"catalogLangId\":\"\",\"baseCode\":\"7306\",\"langId\":\"92\",\"userGroupCode\":\"BTOC\",\"greyModelSign\":false}", Encoding.UTF8, "application/json");
-            var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/catalog_index/ ", content);
+                    var client = PostClient.Create();
 
-            var jsonInString = await answer.Content.ReadAsStringAsync();
-            return jsonInString;
+                    string json = "{\"productId\":\""+ item.ProductId + "\",\"modelBaseCode\":\"\",\"modelTypeCode\":\"" + item.ModelTypeCode + "\",\"modelYear\":\"" + item.ModelYear + "\",\"productNo\":\"" + item.ProductNo + "\",\"colorType\":\"" + item.ColorType + "\",\"modelName\":\"" + item.ModelName + "\",\"prodCategory\":\"" + item.ProdCategory + "\",\"calledCode\":\"1\",\"vinNoSearch\":\"false\",\"catalogLangId\":\"\",\"baseCode\":\"7306\",\"langId\":\"92\",\"userGroupCode\":\"BTOC\",\"greyModelSign\":false}";
+                    HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                    try
+                    {
+                        var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/catalog_index/", content);
+
+                        jsonCollection.Add(await answer.Content.ReadAsStringAsync());
+                    }
+                    catch (Exception)
+                    {
+                        System.Threading.Thread.Sleep(randomTimeout);
+
+                        try
+                        {
+                            var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/catalog_index/", content);
+
+                            jsonCollection.Add(await answer.Content.ReadAsStringAsync());
+                        }
+                        catch (Exception)
+                        {
+                            var restartoptions = SqlService.GetRestartCataloge();
+                            GetSetsPositions(restartoptions);
+                        }
+
+                        
+                    }
+                    idCollection.Add(item.VariantId);
+
+                    Console.WriteLine("\n ************************************************************************************** \n Curent status: No of curent post = " + showCaseCounter + " Etaration before pause left = " + (10 - toPauseCounter) + "\n ************************************************************************************** \n");
+
+                    System.Threading.Thread.Sleep(randomTimeout);
+
+                    if (showCaseCounter == jsonParamsCollection.Count || toPauseCounter == 10)
+                    {
+                        System.Threading.Thread.Sleep(randomBigTimeout);
+                        toPauseCounter = 1;
+                        Parser.ParseCataloge(jsonCollection,idCollection);
+                        jsonCollection = new();
+                        idCollection = new();
+                    }
+                    showCaseCounter++;
+                    toPauseCounter++;
+                }
         }
 
         public static async Task<string> GetSetParts()
