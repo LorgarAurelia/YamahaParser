@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Parser.Core.SqlConnection
+﻿namespace Parser.Core.SqlConnection
 {
     class GetPositionJson
     {
@@ -15,7 +9,6 @@ namespace Parser.Core.SqlConnection
         public string ColorType { get; set; }
         public string ModelName { get; set; }
         public string ProdCategory { get; set; }
-
         public string VariantId { get; set; }
     }
 }

@@ -31,8 +31,8 @@ namespace Parser
             SqlService.InsertModelList(result);*/
             /*var jsonCollect = SqlService.GetPositionJson();
             Loader.GetSetsPositions(jsonCollect);*/
-            var restartoptions = SqlService.GetPositionJson();
-            Loader.GetSetsPositions(restartoptions);
+            var restartoptions = SqlService.GetPartsJson();
+            Loader.GetSetParts(restartoptions);
 
             /*Loader.GetModelYearsList(yearsJsonParams);*/
 

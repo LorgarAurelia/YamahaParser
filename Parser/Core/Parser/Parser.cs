@@ -139,7 +139,7 @@ namespace Parser
             return parsedModelList;
         }
 
-        public static YearsModelCollection ParseYears(List<YearsUnparsedContent> dataToParse) 
+        public static YearsModelCollection ParseYears(List<YearsUnparsedContent> dataToParse)
         {
             YearsModelCollection parsedData = new();
             parsedData.ModelId = new();
@@ -148,7 +148,7 @@ namespace Parser
             foreach (var item in dataToParse)
             {
                 string[] modelFromatedData;
-                string modelData = item.Json.Replace("\"modelYearDataCollection\"","");
+                string modelData = item.Json.Replace("\"modelYearDataCollection\"", "");
 
                 modelData = JsonStringCleaner(modelData);
                 modelFromatedData = modelData.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
@@ -172,7 +172,7 @@ namespace Parser
             return parsedData;
         }
 
-        public static ModelsVariantData ParseVariants (List<VariantsUnparsed> dataToParse)
+        public static ModelsVariantData ParseVariants(List<VariantsUnparsed> dataToParse)
         {
             ModelsVariantData parsedData = new();
             parsedData.ModelTypeCode = new();
@@ -284,9 +284,64 @@ namespace Parser
                     if (row.Contains("illustFileURL"))
                         parsedData.IllustFileURL.Add(pair[1]);
                 }
-                
+
             }
             SqlService.InsertCataloge(parsedData);
+        }
+
+        public static void ParseParts (List<string> dataToParse, List<string> idCollection)
+        {
+            PartsData parsedData = new();
+            parsedData.RefNo = new();
+            parsedData.CatalogId = new();
+            parsedData.PartNo = new();
+            parsedData.PartName = new();
+            parsedData.Quantity = new();
+            parsedData.Remarks = new();
+
+            for (int i = 0; i < dataToParse.Count; i++)
+            {
+                if (dataToParse[i].Contains("We are sorry for your inconvenience but the system is busy now.\nYour access again after a while is appreciated")) //добавить инъекцию в бд не пробитых моделей
+                    continue;
+                string[] modelFromatedData;
+                string modelData = dataToParse[i][dataToParse[i].IndexOf("\"partsDataCollection\"")..dataToParse[i].IndexOf("\"hotspotoDataCollection\"")]
+                    .Replace("\"partsDataCollection\"", "")
+                    .Replace("notesDataCollection", "")
+                    .Replace("hotspotoDataCollection", "");
+
+                modelData = JsonStringCleaner(modelData);
+
+                modelFromatedData = modelData.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                for (int Counter = 0; Counter < modelFromatedData.Length; Counter++)
+                {
+                    string row = modelFromatedData[Counter].Trim();
+
+                    if (row.Length == 0)
+                        continue;
+
+                    string[] pair = row.Split(new char[] { ':' }, 2);
+
+                    if (row.Contains("partNo"))
+                    {
+                        parsedData.PartNo.Add(pair[1]);
+                        parsedData.CatalogId.Add(idCollection[i]);
+                    }
+
+                    if (row.Contains("refNo"))
+                        parsedData.RefNo.Add(pair[1]);
+
+                    if (row.Contains("partName"))
+                        parsedData.PartName.Add(pair[1]);
+
+                    if (row.Contains("quantity"))
+                        parsedData.Quantity.Add(pair[1]);
+
+                    if (row.Contains("remarks"))
+                        parsedData.Remarks.Add(pair[1]);
+                }
+
+            }
+            SqlService.InsertParts(parsedData);
         }
     }
 }

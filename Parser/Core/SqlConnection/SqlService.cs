@@ -124,7 +124,7 @@ namespace Parser
             return jsonContent;
         }
 
-        public static void InsertUnparsedData (List<UnparsedYearsData> data)
+        public static void InsertUnparsedData(List<UnparsedYearsData> data)
         {
             ConnectionToDB sqlClient = new();
             string query;
@@ -154,7 +154,7 @@ namespace Parser
 
             SqlDataReader reader = command.ExecuteReader();
 
-            while (reader.Read()) 
+            while (reader.Read())
             {
                 YearsUnparsedContent row = new();
 
@@ -229,7 +229,7 @@ namespace Parser
 
             for (int i = 0; i < data.Count; i++)
             {
-                string markedJson = data[i].Replace("'","+");
+                string markedJson = data[i].Replace("'", "+");
                 query = $"INSERT INTO [UnparsedModelVariant] (json) values (N'{markedJson}')";
 
                 SqlCommand command = new(query, sqlClient.sqlConnection);
@@ -247,7 +247,7 @@ namespace Parser
             ConnectionToDB sqlClient = new();
             string lastId = "0";
             string queryLastId = "select count(id) from UnparsedModelVariant";
-            
+
 
             SqlCommand command = new(queryLastId, sqlClient.sqlConnection);
 
@@ -316,7 +316,7 @@ namespace Parser
             return jsonCollection;
         }
 
-        public static void InsertVariant(ModelsVariantData data) 
+        public static void InsertVariant(ModelsVariantData data)
         {
             ConnectionToDB sqlClient = new();
             string query;
@@ -378,7 +378,7 @@ namespace Parser
             for (int i = 0; i < data.FigName.Count; i++)
             {
                 query = $"INSERT INTO [Cataloge] (figName, figNo, illustNo, figBranchNo, illustFileURL, VariantId, catalogNo) values (N'{data.FigName[i]}', N'{data.FigNo[i]}', N'{data.IllustNo[i]}', N'{data.FigBranchNo[i]}', N'{data.IllustFileURL[i]}', {data.VariantId[i]}, N'{data.CatalogNo[i]}')";
-                
+
                 SqlCommand command = new(query, sqlClient.sqlConnection);
 
                 command.ExecuteNonQuery();
@@ -436,6 +436,83 @@ namespace Parser
                 Console.WriteLine("Connection closed");
 
             return jsonContent;
+        }
+
+        public static List<PartsJsonParameters> GetPartsJson()
+        {
+            ConnectionToDB sqlClient = new();
+
+            string lastId = "0";
+            string queryLastId = "SELECT TOP 1 CatalogeId FROM Parts ORDER BY Id DESC "; // ОСТАНОВИЛСЯ ЗДЕСЬ
+
+            SqlCommand command = new(queryLastId, sqlClient.sqlConnection);
+
+            SqlDataReader lastIdReader = command.ExecuteReader();
+            while (lastIdReader.Read())
+            {
+                lastId = lastIdReader[0].ToString().Trim();
+            }
+            lastIdReader.Close();
+
+            string query = $"select productId, modelTypeCode, modelYears, productNo, colorType, modelName, figNo, figBranchNo, catalogNo, illustNo, cat.Id from Cataloge as cat join Variants as v on cat.VariantId = v.Id join ModelYears as my on v.YearsId = my.Id join Models as m on my.modelId = m.Id where cat.id > {lastId}";
+
+            List<PartsJsonParameters> jsonContent = new();
+
+            command = new(query, sqlClient.sqlConnection);
+
+            SqlDataReader reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                PartsJsonParameters row = new();
+
+                row.ProductId = reader[0].ToString().Trim();
+                row.ModelTypeCode = reader[1].ToString().Trim();
+                row.ModelYears = reader[2].ToString().Trim();
+                row.ProductNo = reader[3].ToString().Trim();
+                row.ColorType = reader[4].ToString().Trim();
+                row.ModelName = reader[5].ToString().Trim().Replace("+", "'");
+                row.FigNo = reader[6].ToString().Trim();
+                row.FigBranchNo = reader[7].ToString().Trim();
+                row.CatalogNo = reader[8].ToString().Trim();
+                row.IllustNo = reader[9].ToString().Trim();
+                row.CatalogeId = reader[10].ToString().Trim();
+
+                jsonContent.Add(row);
+            }
+            reader.Close();
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
+
+            return jsonContent;
+        }
+
+        public static void InsertParts (PartsData data)
+        {
+            ConnectionToDB sqlClient = new();
+            string query;
+
+            for (int i = 0; i < data.PartName.Count; i++)
+            {
+                query = $"INSERT INTO [Parts] (refNo, partNo, quantity, remarks, CatalogeId, partName) values (N'{data.RefNo[i]}', N'{data.PartNo[i]}', N'{data.Quantity[i]}', N'{data.Remarks[i]}', {data.CatalogId[i]}, N'{data.PartName[i]}')";
+
+                SqlCommand command = new(query, sqlClient.sqlConnection);
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception) 
+                {
+                    Console.WriteLine("Ошибка запроса: " + query);
+                    throw;
+                }
+            }
+
+            sqlClient.sqlConnection.Close();
+            if (sqlClient.sqlConnection.State == ConnectionState.Closed)
+                Console.WriteLine("Connection closed");
         }
     }
 }

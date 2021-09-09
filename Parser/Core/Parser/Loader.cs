@@ -37,7 +37,7 @@ namespace Parser
                 var jsonInString = await answer.Content.ReadAsStringAsync();
                 jsonCollection.Add(jsonInString);
 
-                System.Threading.Thread.Sleep(randomTimeout);//Трэдслип нужен, чтобы сервер не рубил соединение
+                System.Threading.Thread.Sleep(randomTimeout);
             }
 
             return jsonCollection;
@@ -88,7 +88,7 @@ namespace Parser
                 if (showCaseCounter == jsonParamsCollection.Count || toPauseCounter == 10)
                 {
                     System.Threading.Thread.Sleep(randomBigTimeout);
-                    toPauseCounter = 1;
+                    toPauseCounter = 0;
                     SqlService.InsertUnparsedData(jsonCollection);
                     jsonCollection = new();
                 }
@@ -144,7 +144,7 @@ namespace Parser
                 {
                     System.Threading.Thread.Sleep(randomBigTimeout);
 
-                    toPauseCounter = 1;
+                    toPauseCounter = 0;
                     SqlService.InsertUnparsedVariant(jsonCollection);
                     jsonCollection = new();
                 }
@@ -202,7 +202,7 @@ namespace Parser
                 if (showCaseCounter == jsonParamsCollection.Count || toPauseCounter == 10)
                 {
                     System.Threading.Thread.Sleep(randomBigTimeout);
-                    toPauseCounter = 1;
+                    toPauseCounter = 0;
                     Parser.ParseCataloge(jsonCollection, idCollection);
                     jsonCollection = new();
                     idCollection = new();
@@ -212,15 +212,66 @@ namespace Parser
             }
         }
 
-        public static async Task<string> GetSetParts()
+        public static async void GetSetParts(List<PartsJsonParameters> jsonParamsCollection)
         {
-            var client = PostClient.Create();
+            List<string> jsonCollection = new();
+            List<string> idCollection = new();
+            int toPauseCounter = 1;
+            int showCaseCounter = 1;
+            foreach (var item in jsonParamsCollection)
+            {
+                int randomTimeout = Randomizer.RandomInt(500, 1500);
+                int randomBigTimeout = Randomizer.RandomInt(7000, 10000);
 
-            HttpContent content = new StringContent("{\"productId\":\"10\",\"modelBaseCode\":\"\",\"modelTypeCode\":\"3JB7\",\"modelYear\":\"1994\",\"productNo\":\"010\",\"colorType\":\"A\",\"modelName\":\"XV400\",\"vinNoSearch\":\"false\",\"figNo\":\"05\",\"figBranchNo\":\"1\",\"catalogNo\":\"143JB010JA\",\"illustNo\":\"3JB1010-9050\",\"catalogLangId\":\"02\",\"baseCode\":\"7306\",\"langId\":\"92\",\"userGroupCode\":\"BTOC\",\"domOvsId\":\"2\",\"greyModelSign\":false,\"cataPBaseCode\":\"7451\",\"currencyCode\":\"GBP\"}", Encoding.UTF8, "application/json");
-            var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/catalog_text/ ", content);
+                var client = PostClient.Create();
 
-            var jsonInString = await answer.Content.ReadAsStringAsync();
-            return jsonInString;
+                string json = "{\"productId\":\"" + item.ProductId + "\",\"modelBaseCode\":\"\",\"modelTypeCode\":\"" + item.ModelTypeCode + "\",\"modelYear\":\"" + item.ModelYears + "\",\"productNo\":\"" + item.ProductNo + "\",\"colorType\":\"" + item.ColorType + "\",\"modelName\":\"" + item.ModelName + "\",\"vinNoSearch\":\"false\",\"figNo\":\"" + item.FigNo + "\",\"figBranchNo\":\"" + item.FigBranchNo + "\",\"catalogNo\":\"" + item.CatalogNo + "\",\"illustNo\":\"" + item.IllustNo + "\",\"catalogLangId\":\"02\",\"baseCode\":\"7306\",\"langId\":\"92\",\"userGroupCode\":\"BTOC\",\"domOvsId\":\"2\",\"greyModelSign\":false,\"cataPBaseCode\":\"7451\",\"currencyCode\":\"GBP\"}";
+                HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                try
+                {
+                    var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/catalog_text/", content);
+
+                    jsonCollection.Add(await answer.Content.ReadAsStringAsync());
+                }
+                catch (Exception)
+                {
+                    System.Threading.Thread.Sleep(randomTimeout);
+
+                    try
+                    {
+                        var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/catalog_text/", content);
+
+                        jsonCollection.Add(await answer.Content.ReadAsStringAsync());
+                    }
+                    catch (Exception)
+                    {
+                        var restartoptions = SqlService.GetPartsJson();
+                        GetSetParts(restartoptions);
+                    }
+
+
+                }
+                idCollection.Add(item.CatalogeId);
+
+                Console.WriteLine("\n ************************************************************************************** \n Curent status: No of curent post = " + showCaseCounter + " Etaration before pause left = " + (20 - toPauseCounter) + "\n ************************************************************************************** \n");
+
+                System.Threading.Thread.Sleep(randomTimeout);
+
+                if (showCaseCounter == jsonParamsCollection.Count || toPauseCounter == 20)
+                {
+                    System.Threading.Thread.Sleep(randomBigTimeout);
+                    toPauseCounter = 0;
+                    Parser.ParseParts(jsonCollection, idCollection); 
+                    jsonCollection = new();
+                    idCollection = new();
+                }
+                showCaseCounter++;
+                toPauseCounter++;
+            } 
         }
     }
 }
+
+
+//"{\"productId\":\"" + item.ProductId + "\",\"modelBaseCode\":\"\",\"modelTypeCode\":\"" + item.ModelTypeCode + "\",\"modelYear\":\"" + item.ModelYears + "\",\"productNo\":\"" + item.ProductNo + "\",\"colorType\":\"" + item.ColorType + "\",\"modelName\":\"" + item.ModelName + "\",\"vinNoSearch\":\"false\",\"figNo\":\"" + item.FigNo + "\",\"figBranchNo\":\"" + item.FigBranchNo + "\",\"catalogNo\":\"" + item.CatalogNo + "\",\"illustNo\":\"" + item.IllustNo + "\",\"catalogLangId\":\"02\",\"baseCode\":\"7306\",\"langId\":\"92\",\"userGroupCode\":\"BTOC\",\"domOvsId\":\"2\",\"greyModelSign\":false,\"cataPBaseCode\":\"7451\",\"currencyCode\":\"GBP\"}"
