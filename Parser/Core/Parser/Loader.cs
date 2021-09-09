@@ -10,6 +10,51 @@ namespace Parser
 {
     class Loader
     {
+        public static async Task<string> JsonLoader(string uri, string postJson, int randomTimeout)
+        {
+            string jsonOut = string.Empty;
+            var client = PostClient.Create();
+
+            HttpContent content = new StringContent(postJson, Encoding.UTF8, "application/json");
+
+            try
+            {
+                var answer = await client.PostAsync(uri, content);
+
+                jsonOut = await answer.Content.ReadAsStringAsync();
+            }
+            catch (Exception)
+            {
+                System.Threading.Thread.Sleep(randomTimeout);
+
+                try
+                {
+                    var answer = await client.PostAsync(uri, content);
+
+                    jsonOut = await answer.Content.ReadAsStringAsync();
+                }
+                catch (Exception)
+                {
+                    if (uri.Contains("catalog_text"))
+                    {
+                        var restartoptions = SqlService.GetPartsJson();
+                        GetSetParts(restartoptions);
+                    }
+                    if (uri.Contains("catalog_index"))
+                    {
+                        var restartoptions = SqlService.GetRestartCataloge();
+                        GetSetsPositions(restartoptions);
+                    }
+                }
+            }
+
+            return jsonOut;
+        }
+
+        public static void PrintStat(int showCaseCounter, int toPauseCounter)
+        {
+            Console.WriteLine("\n ************************************************************************************** \n Curent status: No of curent post = " + showCaseCounter + " Etaration before pause left = " + (20 - toPauseCounter) + "\n ************************************************************************************** \n");
+        }
         public static async Task<string> GetCategoriesJson()
         {
             var client = PostClient.Create();
@@ -164,42 +209,23 @@ namespace Parser
                 int randomTimeout = Randomizer.RandomInt(1000, 3000);
                 int randomBigTimeout = Randomizer.RandomInt(9000, 12000);
 
-                var client = PostClient.Create();
+                string jsonAnswer;
+
+                string uri = "https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/catalog_index/"; 
 
                 string json = "{\"productId\":\"" + item.ProductId + "\",\"modelBaseCode\":\"\",\"modelTypeCode\":\"" + item.ModelTypeCode + "\",\"modelYear\":\"" + item.ModelYear + "\",\"productNo\":\"" + item.ProductNo + "\",\"colorType\":\"" + item.ColorType + "\",\"modelName\":\"" + item.ModelName + "\",\"prodCategory\":\"" + item.ProdCategory + "\",\"calledCode\":\"1\",\"vinNoSearch\":\"false\",\"catalogLangId\":\"\",\"baseCode\":\"7306\",\"langId\":\"92\",\"userGroupCode\":\"BTOC\",\"greyModelSign\":false}";
-                HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                try
-                {
-                    var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/catalog_index/", content);
+                jsonAnswer = await JsonLoader(uri, json, randomTimeout);
 
-                    jsonCollection.Add(await answer.Content.ReadAsStringAsync());
-                }
-                catch (Exception)
-                {
-                    System.Threading.Thread.Sleep(randomTimeout);
-
-                    try
-                    {
-                        var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/catalog_index/", content);
-
-                        jsonCollection.Add(await answer.Content.ReadAsStringAsync());
-                    }
-                    catch (Exception)
-                    {
-                        var restartoptions = SqlService.GetRestartCataloge();
-                        GetSetsPositions(restartoptions);
-                    }
-
-
-                }
                 idCollection.Add(item.VariantId);
 
-                Console.WriteLine("\n ************************************************************************************** \n Curent status: No of curent post = " + showCaseCounter + " Etaration before pause left = " + (10 - toPauseCounter) + "\n ************************************************************************************** \n");
+                jsonCollection.Add(jsonAnswer);
+
+                PrintStat(showCaseCounter, toPauseCounter);
 
                 System.Threading.Thread.Sleep(randomTimeout);
 
-                if (showCaseCounter == jsonParamsCollection.Count || toPauseCounter == 10)
+                if (showCaseCounter == jsonParamsCollection.Count || toPauseCounter == 20)
                 {
                     System.Threading.Thread.Sleep(randomBigTimeout);
                     toPauseCounter = 0;
@@ -249,9 +275,8 @@ namespace Parser
                         var restartoptions = SqlService.GetPartsJson();
                         GetSetParts(restartoptions);
                     }
-
-
                 }
+
                 idCollection.Add(item.CatalogeId);
 
                 Console.WriteLine("\n ************************************************************************************** \n Curent status: No of curent post = " + showCaseCounter + " Etaration before pause left = " + (20 - toPauseCounter) + "\n ************************************************************************************** \n");
@@ -274,4 +299,3 @@ namespace Parser
 }
 
 
-//"{\"productId\":\"" + item.ProductId + "\",\"modelBaseCode\":\"\",\"modelTypeCode\":\"" + item.ModelTypeCode + "\",\"modelYear\":\"" + item.ModelYears + "\",\"productNo\":\"" + item.ProductNo + "\",\"colorType\":\"" + item.ColorType + "\",\"modelName\":\"" + item.ModelName + "\",\"vinNoSearch\":\"false\",\"figNo\":\"" + item.FigNo + "\",\"figBranchNo\":\"" + item.FigBranchNo + "\",\"catalogNo\":\"" + item.CatalogNo + "\",\"illustNo\":\"" + item.IllustNo + "\",\"catalogLangId\":\"02\",\"baseCode\":\"7306\",\"langId\":\"92\",\"userGroupCode\":\"BTOC\",\"domOvsId\":\"2\",\"greyModelSign\":false,\"cataPBaseCode\":\"7451\",\"currencyCode\":\"GBP\"}"

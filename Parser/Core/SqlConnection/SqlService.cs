@@ -506,6 +506,7 @@ namespace Parser
                 catch (Exception) 
                 {
                     Console.WriteLine("Ошибка запроса: " + query);
+                    Console.ReadKey();
                     throw;
                 }
             }
