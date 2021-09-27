@@ -8,5 +8,6 @@ namespace Parser.Core.Parser
         public List<string> ModelName { get; set; }
         public List<string> DispModelName { get; set; }
         public List<string> Nickname { get; set; }
+        public List<string> DisplacementId { get; set; }
     }
 }

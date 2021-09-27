@@ -21,7 +21,7 @@ namespace Parser
 
             return result;
         }
-        public static DispacementData ParseDisplacement(string json)
+        public static void ParseDisplacement(string json)
         {
             DispacementData ParsedData = new();
             List<string> productId = new();
@@ -62,10 +62,10 @@ namespace Parser
             ParsedData.DisplacementType = displacementType;
             ParsedData.Displacement = displacement;
 
-            return ParsedData;
+            SqlService.InsertDispacement(ParsedData);
         }
 
-        public static Categories ParseCategories(string json)
+        public static void ParseCategories(string json)
         {
             Categories parsedCategories = new();
             parsedCategories.ProductName = new();
@@ -95,16 +95,17 @@ namespace Parser
                     parsedCategories.ProductId.Add(pair[1]);
             }
 
-            return parsedCategories;
+            SqlService.InsertCategories(parsedCategories);
         }
 
-        public static ModelCollection ParseModelsList(List<string> listOfModel)
+        public static void ParseModelsList(List<string> listOfModel, List<string> idCollection)
         {
             ModelCollection parsedModelList = new();
             parsedModelList.ProductId = new();
             parsedModelList.ModelName = new();
             parsedModelList.DispModelName = new();
             parsedModelList.Nickname = new();
+            parsedModelList.DisplacementId = new();
 
             foreach (var json in listOfModel)
             {
@@ -124,7 +125,11 @@ namespace Parser
                     string[] pair = row.Split(new char[] { ':' }, 2);
 
                     if (row.Contains("productId"))
+                    {
                         parsedModelList.ProductId.Add(pair[1]);
+                        parsedModelList.DisplacementId.Add(idCollection[i]);
+                    }
+                        
 
                     if (row.Contains("modelName"))
                         parsedModelList.ModelName.Add(pair[1]);
@@ -136,7 +141,7 @@ namespace Parser
                         parsedModelList.Nickname.Add(pair[1]);
                 }
             }
-            return parsedModelList;
+            SqlService.InsertModelList(parsedModelList);
         }
 
         public static YearsModelCollection ParseYears(List<YearsUnparsedContent> dataToParse)

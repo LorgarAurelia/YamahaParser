@@ -40,54 +40,76 @@ namespace Parser
                         var restartoptions = SqlService.GetPartsJson();
                         GetSetParts(restartoptions);
                     }
+
                     if (uri.Contains("catalog_index"))
                     {
                         var restartoptions = SqlService.GetRestartCataloge();
                         GetSetsPositions(restartoptions);
                     }
+
+                    if (uri.Contains("model_list"))
+                    {
+                        var restartOptions = SqlService.GetRestart();
+                        GetModelVariant(restartOptions);
+                    }
+
+                    //Добавить рестарт GetModelYearsList
                 }
             }
 
             return jsonOut;
         }
-
+        /// <summary>
+        /// Выводит информацию по текущим запросам
+        /// </summary>
+        /// <param name="showCaseCounter"></param>
+        /// <param name="toPauseCounter"></param>
         public static void PrintStat(int showCaseCounter, int toPauseCounter)
         {
             Console.WriteLine("\n ************************************************************************************** \n Curent status: No of curent post = " + showCaseCounter + " Etaration before pause left = " + (20 - toPauseCounter) + "\n ************************************************************************************** \n");
         }
-        public static async Task<string> GetCategoriesJson()
+
+        public static async void GetCategoriesJson()  //запустить дома и проверить результат
         {
-            var client = PostClient.Create();
+            int randomTimeout = Randomizer.RandomInt(1000, 3000);
 
+            string json = "{\"baseCode\":\"7306\",\"langId\":\"92\"}";
+            string uri = "https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/product_list/ ";
 
-            HttpContent content = new StringContent("{\"baseCode\":\"7306\",\"langId\":\"92\"}", Encoding.UTF8, "application/json");
-            var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/product_list/ ", content);
+            var jsonInString = await JsonLoader(uri,json,randomTimeout);
 
-            var jsonInString = await answer.Content.ReadAsStringAsync();
-            return jsonInString;
+            Parser.ParseCategories(jsonInString);
+            Parser.ParseDisplacement(jsonInString);
         }
 
-        public static async Task<List<string>> GetModelNameList(List<ModelJsonContent> jsonParamsCollection)
+        public static async void GetModelNameList(List<ModelJsonContent> jsonParamsCollection)
         {
             List<string> jsonCollection = new();
+            List<string> idCollection = new();
             foreach (var item in jsonParamsCollection)
             {
                 int randomTimeout = Randomizer.RandomInt(1000, 3000);
-                var client = PostClient.Create();
+
+                string uri = "https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_name_list/ ";
+
                 string json = "{\"productId\":\"" + item.ProductId + "\",\"displacementType\":\"" + item.DisplacementType + "\",\"baseCode\":\"7306\",\"langId\":\"92\"}";
 
-                HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
-                var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_name_list/ ", content);
+                var jsonInString = await JsonLoader(uri,json,randomTimeout);
 
-                var jsonInString = await answer.Content.ReadAsStringAsync();
                 jsonCollection.Add(jsonInString);
+                idCollection.Add(item.DisplacementId);
 
                 System.Threading.Thread.Sleep(randomTimeout);
             }
 
-            return jsonCollection;
+            Parser.ParseModelsList(jsonCollection, idCollection);
         }
 
+
+        /// <summary>
+        /// Выгружает с сайта данные по годам у моделей. Принимает лист параметров для запросов
+        /// </summary>
+        /// <param name="jsonParamsCollection"></param>
         public static async void GetModelYearsList(List<YearsJsonContent> jsonParamsCollection)
         {
             List<UnparsedYearsData> jsonCollection = new();
@@ -101,31 +123,21 @@ namespace Parser
                 int randomTimeout = Randomizer.RandomInt(1000, 3000);
                 int randomBigTimeout = Randomizer.RandomInt(9000, 12000);
 
-                var client = PostClient.Create();
+                string jsonAnswer;
+                string uri = "https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_year_list/";
+
+                
 
                 string json = "{\"productId\":\"" + item.ProductId + "\",\"modelName\":\"" + item.ModelName + "\",\"nickname\":\"" + item.Nickname + "\",\"baseCode\":\"7306\",\"langId\":\"92\",\"userGroupCode\":\"BTOC\",\"destination\":\"GBR\",\"destGroupCode\":\"EURS\",\"domOvsId\":\"2\"}";
 
                 row.ModelName = item.ModelName;
 
-                HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
-                try
-                {
-                    var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_year_list/", content);
+                jsonAnswer = await JsonLoader(uri,json,randomTimeout);
 
-                    row.Json = await answer.Content.ReadAsStringAsync();
-                }
-                catch (Exception)
-                {
-                    System.Threading.Thread.Sleep(randomTimeout);
-
-                    var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_year_list/", content);
-
-                    row.Json = await answer.Content.ReadAsStringAsync();
-                }
-
-                Console.WriteLine(row.Json + "************************************\n" + "Curent status: No of curent post = " + showCaseCounter + " Etaration before pause left = " + (10 - toPauseCounter) + "************************************\n");
-
+                row.Json = jsonAnswer;
                 jsonCollection.Add(row);
+
+                PrintStat(showCaseCounter,toPauseCounter);
 
                 System.Threading.Thread.Sleep(randomTimeout);
 
@@ -142,6 +154,10 @@ namespace Parser
             }
         }
 
+        /// <summary>
+        /// Выгружает с сайта набор вариантов одной конекретной модели. Принимает лист параметров для запросов
+        /// </summary>
+        /// <param name="jsonParamsCollection"></param>
         public static async void GetModelVariant(List<ModelVariantJsonContent> jsonParamsCollection)
         {
             List<string> jsonCollection = new();
@@ -154,38 +170,22 @@ namespace Parser
                 int randomTimeout = Randomizer.RandomInt(1000, 3000);
                 int randomBigTimeout = Randomizer.RandomInt(9000, 12000);
 
+                string jsonAnswer = string.Empty;
+                string uri = "https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_list/";
+
                 var client = PostClient.Create();
 
                 string json = "{\"productId\":\"" + item.ProductId + "\",\"calledCode\":\"1\",\"modelName\":\"" + item.ModelName + "\",\"nickname\":\"" + item.Nickname + "\",\"modelYear\":\"" + item.ModelYear + "\",\"modelTypeCode\":null,\"productNo\":null,\"colorType\":null,\"vinNo\":null,\"prefixNoFromScreen\":null,\"serialNoFromScreen\":null,\"baseCode\":\"7306\",\"langId\":\"92\",\"userGroupCode\":\"BTOC\",\"destination\":\"GBR\",\"destGroupCode\":\"EURS\",\"domOvsId\":\"2\",\"useProdCategory\":true,\"greyModelSign\":false}";
 
-                HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
-                try
-                {
-                    var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_list/", content);
+                jsonAnswer = await JsonLoader(uri,json,randomTimeout);
 
-                    jsonCollection.Add(await answer.Content.ReadAsStringAsync());
-                }
-                catch (Exception)
-                {
-                    System.Threading.Thread.Sleep(randomTimeout);
+                PrintStat(showCaseCounter, toPauseCounter);
 
-                    try
-                    {
-                        var answer = await client.PostAsync("https://parts.yamaha-motor.co.jp/ypec_b2c/services/html5/model_list/", content);
-                        jsonCollection.Add(await answer.Content.ReadAsStringAsync());
-                    }
-                    catch (Exception)
-                    {
-                        var restartOptions = SqlService.GetRestart();
-                        GetModelVariant(restartOptions);
-                    }
-                }
-
-                Console.WriteLine("\n *************************************************************** \n Curent status: No of curent post = " + showCaseCounter + " Etaration before pause left = " + (10 - toPauseCounter) + "\n *************************************************************** \n");
+                jsonCollection.Add(jsonAnswer);
 
                 System.Threading.Thread.Sleep(randomTimeout);
 
-                if (showCaseCounter == jsonParamsCollection.Count || toPauseCounter == 10)
+                if (showCaseCounter == jsonParamsCollection.Count || toPauseCounter == 20)
                 {
                     System.Threading.Thread.Sleep(randomBigTimeout);
 
@@ -198,6 +198,10 @@ namespace Parser
             }
         }
 
+        /// <summary>
+        /// Выгружает с сайта списки зап частей. Принимает лист параметров для пост запросов
+        /// </summary>
+        /// <param name="jsonParamsCollection"></param>
         public static async void GetSetsPositions(List<GetPositionJson> jsonParamsCollection)
         {
             List<string> jsonCollection = new();
@@ -238,6 +242,10 @@ namespace Parser
             }
         }
 
+        /// <summary>
+        /// Выгружает в парсер с сайта детали конкретной части. Принимает лист параметров для пост запросов
+        /// </summary>
+        /// <param name="jsonParamsCollection"></param>
         public static async void GetSetParts(List<PartsJsonParameters> jsonParamsCollection)
         {
             List<string> jsonCollection = new();
@@ -272,8 +280,10 @@ namespace Parser
                     }
                     catch (Exception)
                     {
+                        jsonParamsCollection = null;
                         var restartoptions = SqlService.GetPartsJson();
                         GetSetParts(restartoptions);
+                        return;
                     }
                 }
 
